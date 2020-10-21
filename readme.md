@@ -2,21 +2,60 @@
 
 # Table of Content
 
-[TOC]
+- [Introduction](#introduction)
+- [Installation](#installation)
+  * [Download binary(with openresty included)](#download-binary-with-openresty-included-)
+  * [LuaRock](#luarock)
+  * [Run Test](#run-test)
+- [Synopsis](#synopsis)
+  * [Processor Creation](#processor-creation)
+  * [Channel Creation](#channel-creation)
+  * [Load Balance](#load-balance)
+  * [Session Info and Session Management](#session-info-and-session-management)
+  * [Event Handling](#event-handling)
+- [Examples](#examples)
+- [SSH2Processor](#ssh2processor)
+  * [Context Collected(Session Object)](#context-collected-session-object-)
+  * [Tested Under](#tested-under)
+  * [Processor.new](#processornew)
+  * [Processor Events](#processor-events-1)
+  * [Parser Events](#parser-events)
+- [Command Collector](#command-collector)
+  * [CommandEnteredEvent[ReturnEvent]](#commandenteredevent-returnevent-)
+  * [CommandFinishedEvent](#commandfinishedevent-1)
+  * [BeforeWelcomeEvent[ReturnEvent]](#beforewelcomeevent-returnevent-)
+- [TNSProcessor](#tnsprocessor)
+  * [Context Collected(Session Object)](#context-collected-session-object--1)
+  * [Tested Under](#tested-under-1)
+  * [Processor.new](#processornew-1)
+  * [Processor Events](#processor-events-2)
+  * [Parser Events](#parser-events-1)
+- [TDSProcessor](#tdsprocessor)
+  * [Context Collected(Session Object)](#context-collected-session-object--2)
+  * [Tested Under](#tested-under-2)
+  * [Processor.new](#processornew-2)
+  * [Processor Events](#processor-events-3)
+  * [Parser Events](#parser-events-2)
+- [LDAPProcessor](#ldapprocessor)
+  * [Context Collected(Session Object)](#context-collected-session-object--3)
+  * [Tested Under](#tested-under-3)
+  * [Processor.new](#processornew-3)
+  * [Processor Events](#processor-events-4)
+  * [Parser Events](#parser-events-3)
 
 # Introduction 
 
-SuProxy is a event-driven Lua proxy libraries for analyzing, intercepting, load balancing and session management.  It provides APIs for
+SuProxy is a event-driven Lua proxy libraries for analyzing, intercepting, load balancing and session management.  It provides APIs for:
 
-- Authentication intercept: Read or change credentials during authentication or introduce self-defined authenticator
-- Command Input Intercept: monitor, filter or change command input
-- Command Output Intercept: monitor, filter or change command reply
-- Context Collect: Get network, user,client , server context like IP, port, client or server version etc. from connection
-- Session Manage: Store session in redis and List, Kill sessions, and way to implement new Session Manager
-- Protocol parser: Parse and encode protocol packets
-- Load Balance: Random balancing with fault punishment, and way to implement more complex balancer
+- Authentication intercept: Read or change credentials during authentication or introduce self-defined authenticator.
+- Command Input Intercept: monitor, filter or change command input.
+- Command Output Intercept: monitor, filter or change command reply.
+- Context Collect: Get network, user, client and server information like IP, port, version etc.
+- Session Manage: Store session in Redis, provide APIs for list, kill and search session.
+- Protocol parser: Parse and encode protocol packets.
+- Load Balance: Multi-upstream balancing with fault tolerance.
 
-Currently, supported protocols include SSH2, ORACLE TNS, SQLSERVER TDS, LDAP etc.
+Currently, supported protocols include SSH2, ORACLE TNS, SQLSERVER TDS, LDAP.
 
 |                                                              | SSH   | SQL Server | Oracle | LDAP  |
 | ------------------------------------------------------------ | ----- | ---------- | ------ | ----- |
@@ -31,15 +70,22 @@ Currently, supported protocols include SSH2, ORACLE TNS, SQLSERVER TDS, LDAP etc
 | Get Network Context<br />(IP,port etc).                      | Y     | Y          | Y      | Y     |
 | Get Client Context<br />(client/server program name <br />and version etc.) | Y     | Y          | Y      | N     |
 
-[^1]:Password authentication only
-[^2]: Get username and password for SQL server disables SSL encryption
-[^3]: Change SQL command is not fully tested, some change like change select command to delete command may not success
-[^4]: Change Username for oracle10 is not supported
-[^5]: Only username based authentication supported
-[^6]:SSL not supported
-[^7]:Only search request and it's reply supported
+- [^1]:Password authentication only
 
-SuProxy is written in pure Lua , and is designed under event-driven pattern, the use and extension of SuProxy libraries are simple: start a listener and listen on it's event, this is an example shows how to start a SSH2 listener and handle authenticate success event of SSH connection. 
+- [^2]: Get username and password for SQL server disables SSL encryption
+
+- [^3]: Change SQL command is not fully tested, some change like change select command to delete command may not success
+
+- [^4]: Change Username for oracle10 is not supported
+
+- [^5]: Only username based authentication supported
+
+- [^6]:SSL not supported
+
+- [^7]:Only search request and it's reply supported
+
+
+SuProxy is written by pure Lua , and is designed under event-driven pattern, the use and extension of SuProxy libraries are simple: start a listener channel and handle it's event. This example shows how to start a SSH2 listener and handle authenticate success event of SSH connection. 
 
 ```lua
 server {
@@ -103,12 +149,12 @@ luajit.exe ./suproxy/test.lua
 
 There are 4 steps to initialize a channel
 
-1. Create a processor by processor's new() method, passing necessary to processor
+1. Create a processor by calling processor's new() method with init options
 2. Create a channel with upstreams info and processor
 3. Handle events triggered by processor or channel
 4. Start the channel
 
-Following code create a TNS channel,and process it's events
+Following code creates a TNS channel and handle it's events
 
 ```lua
 --Create a TNS processor and passing server version to it
@@ -125,18 +171,18 @@ channel.OnConnectEvent:addHandler(channel,logConnect)
 channel:run()
 ```
 
-After channel:run() is executed, the channel will listen on the socket for new data, events will then be trigger in different occasion. user program should process those event to finished their job. Both channel and processor may trigger events.
+After channel:run() is executed, the channel will listen on the socket. Events will then be trigger in different occasion. User program should handle those events to do their job. Both channel and processor may trigger events.
 
 ## Processor Creation
 
-Processors parse the stream with protocol specific parsers. 
+Processors parse the network stream with protocol specific parsers. 
 
 ```lua
---xxx can be ssh2 ldap tns tds for now
+--xxx can be ssh2,ldap,tns,tds for now
 require("suproxy.xxx"):new(options)
 ```
 
-Using above line can create different processor. Currently SSH, TDS, TNS, LDAP processors are ready. Processor may have self-defined options or not. for example, TNS processor can accept two parameters oracleVersion which specify server major version and swapPass which tell processor whether to change user password at login time, see following section for details.
+Using above line can create processor(change xxx to processor name). Currently SSH, TDS, TNS and LDAP processors are ready. Processor may have self-defined initial options or not.  For example, TNS processor can accept two parameters oracleVersion which specify server major version and swapPass which tell processor whether to change user password at login time. See document for each processor for details.
 
 ## Channel Creation
 
@@ -146,7 +192,7 @@ Channel maintain the connection between client and server, read data from socket
 require("suproxy.channel"):new({{ip="192.168.1.97",port=1521}},tns)
 ```
 
-Above line create a channel with one upstream and a TNS protocal processors. If more than one upstream is passed to channel The [default balancer](#Load-Balance) will randomly select from those upstreams. Notice that channel won't start to listen and process until channel.run() is called.
+Above line create a channel with one upstream and a TNS protocal processors. If more than one upstream is passed to channel The [default balancer](#Load-Balance) will randomly select from those upstreams. Note that channel won't start  until channel.run() is called.
 
 Channel provides 4 methods to read and response to client or server:
 
@@ -158,7 +204,7 @@ Channel provides 4 methods to read and response to client or server:
 
 **Channel.p2cRead** read data from proxy-server socket
 
-How to use it refer [Read and Response](#Read-and-Response)
+How to use them refer [Read and Response](#Read-and-Response)
 
 channel.new method can accept an extra options  to set socket timeouts
 
@@ -175,7 +221,7 @@ require("suproxy.channel"):new(upstream,processor,options)
 
 ## Load Balance
 
-SuProxy provides basic load balancing ability. Multiple upstream can be send to channel, load balancer will randomly select from given upstreams. If one upstream fail, balancer will temporarily suspend this upstream for a while. To create a balancer: call the new method of suproxy.balancer.balancer with upstream list and suspendSpan (optional, default 30 seconds), then pass the balancer to the channel's constructor like this:
+SuProxy provides basic load balancing ability. Multiple upstreams can be send to channel. Default load balancer will randomly select one from given upstreams. If one upstream fail, balancer will temporarily suspend this upstream for a while. To create a balancer: call the new method of suproxy.balancer.balancer with upstream list and suspendSpan (optional, default 30 seconds), then pass the balancer to the channel's constructor like this:
 
 ```lua
 --here use "package.loaded" to ensure balancer only init once across multiple request, cause balancer will maintain the state of those upstreams.
@@ -190,11 +236,11 @@ local channel=require("suproxy.channel"):new(package.loaded.my_SSHB,ssh)
 
 Each upstream must include IP,Port. Whereas ID and GID are optional fields, ID stands for identifier of this upstream server, GID stands for the group this server belongs. these two fields can be obtained from event handler.
 
-One can easily write its own balancer by implementing getBest and blame methods. Refer balancer.balancer.lua for more information.
+One can easily write its own balancer by implementing **getBest** and **blame** methods. Refer balancer.balancer.lua for more information.
 
 ## Session Info and Session Management
 
-SuProxy wil maintain session context includes: server IP,server port, client IP, client port, connect time,username and some processor specific attributes like client version or connect string. Below is the session context of SSH2 processor:
+SuProxy maintains session context includes: server IP,server port, client IP, client port, connect time,username and some processor specific attributes like client version or connect string. Below is the session context of SSH2 processor:
 
 ```json
  {
@@ -209,18 +255,18 @@ SuProxy wil maintain session context includes: server IP,server port, client IP,
 }
 ```
 
-These info can be passed to processor's event handler.
+These info will be passed to processor's event handler.
 
-By default,Session context is stored locally, not shared across requests. A Redis session manager is provided to support the Redis storage. Redis session manager also provides simple session management operation like get active session list and kill session. The way to change default session manager is like this:
+By default, session context is stored locally so is not shared across requests. A Redis session manager is provided to support the Redis storage. Redis session manager also provides simple session management operation like getting active session list and killing session. The way to change default session manager is like this:
 
 ```lua
 local sessionManager= require ("suproxy.session.sessionManager"):new{ip="127.0.0.1",port=6379,expire=-1,extend=false,timeout=2000}
 local channel=require("suproxy.channel"):new(package.loaded.my_OracleB,tns,{sessionMan=sessionManager})
 ```
 
-where **IP** and **port** is the Redis server's address. **Expire** sets the default expire time span (in second) of session default 3600, -1 means never expire. **extend** indicates whether to extend the session lease after new packets were sent from client, **timeout** indicates redis timeout in millisecond, default 5000.
+Where **IP** and **port** is the Redis server's address. **Expire** sets the default expire time span (in second) of session default 3600, -1 means never expire. **extend** indicates whether to extend the session lease after new packets were sent from client, **timeout** indicates Redis timeout in millisecond, default 5000.
 
-LUA code session\manage.lua shows how to manage session on http. Add following lines to nginx config to test it.
+LUA code example.session.lua shows how to manage session on http. Add following lines to nginx config to test it.
 
 ```nginx
  server {
@@ -230,7 +276,7 @@ LUA code session\manage.lua shows how to manage session on http. Add following l
     ...
 
     location /suproxy/manage{
-        content_by_lua_file  lualib/suproxy/session/manage.lua;
+        content_by_lua_file  lualib/suproxy/example/session.lua;
     }
 }
 ```
@@ -356,7 +402,7 @@ Below is an example to pass the original credential to a remote server and get a
 local function oauth(context,source,cred,session)
  --show how to get password with oauth protocal,using username as code, an app should be add and a password attributes should be add
     local param={
-        ssoProtocol="OAUTH",
+        ssoProtocal="OAUTH",
         validate_code_url="http://xxxxxxxxxxxx/oauth2/token",
         profile_url="http://xxxxxxxxxxxxx/oauth2/userinfo",
         client_secret="xxxxxxxxxxx",
@@ -835,7 +881,7 @@ This example shows how to change the user inputted username and password from th
 ```lua
 local function oauth(context,source,credential,session)
     local param={
-        ssoProtocol="OAUTH",
+        ssoProtocal="OAUTH",
         validate_code_url="http://xxxxxxxxxxxxxxxx/token",
         profile_url="http://xxxxxxxxxxxxxx/userinfo",
         client_secret="xxxxxxxxxxxxxxxxxx",
@@ -989,16 +1035,25 @@ commandCollector.lua under ssh2 directory shows how to collect command and reply
 SSH2Processor support following ParserEvents, refer ssh2.lua, ssh2Packets.lua, ssh2\parser.lua for more information. more detail will be given in coming document
 
 C2PParser.events.KeyXInitEvent
+
 C2PParser.events.AuthReqEvent
+
 C2PParser.events.DHKeyXInitEvent
+
 C2PParser.events.NewKeysEvent
+
 C2PParser.events.ChannelDataEvent
 
 S2PParser.events.KeyXInitEvent
+
 S2PParser.events.DHKeyXReplyEvent
+
 S2PParser.events.AuthSuccessEvent
+
 S2PParser.events.AuthFailEvent
+
 S2PParser.events.NewKeysEvent
+
 S2PParser.events.ChannelDataEvent
 
 # Command Collector
@@ -1028,22 +1083,22 @@ Unicode command and following hotkey is now supported by CommandCollector. Full 
 - ctrl+? 
 - enter
 
-### CommandEnteredEvent[ReturnEvent]
+## CommandEnteredEvent[ReturnEvent]
 
 Triggers after Return key (0x0d) been entered by client , if new command is returned then this new command will be sent to server, if error is returned, no command will be sent and error message will be displayed on client.
 
-#### Handler syntax
+### Handler syntax
 
 newCommand,err = handler(context,source,command,session)
 
-#### Handler input parameters
+### Handler input parameters
 
 - context: execution context that is defined when adding handler to event.
 - source: a SSH2 processor instance.
 - command: command string.
 - session: context collected by processor.
 
-#### Handler return value
+### Handler return value
 
 newCommand: command string to be send to server.
 
@@ -1054,7 +1109,7 @@ err: error message and code, format:
 | message | string | error message | required |
 | code    | number | error code    | optional |
 
-#### Example
+### Example
 
 This example shows how to filter user input by checking keyword:
 
@@ -1072,15 +1127,15 @@ ssh.S2PDataEvent:addHandler(cmd,cmd.handleDataDown)
 cmd.CommandEnteredEvent:addHandler(ssh,commandFilter)
 ```
 
-### CommandFinishedEvent
+## CommandFinishedEvent
 
 This event triggers when command is replied from server.
 
-#### Handler syntax
+### Handler syntax
 
 handler(context,source,command,reply,session)
 
-#### Handler parameters
+### Handler parameters
 
 - context: execution context that is defined when adding handler to event.
 - source: a SSH2 processor instance.
@@ -1088,7 +1143,7 @@ handler(context,source,command,reply,session)
 - reply: command reply string.
 - session: context collected by processor.
 
-#### Example
+### Example
 
 This example shows how to  log command and reply:
 
@@ -1120,27 +1175,27 @@ libc6_2.31-0ubuntu8+lp1871129~1_amd64.deb
 ----------------reply end------------------
 ```
 
-### BeforeWelcomeEvent[ReturnEvent]
+## BeforeWelcomeEvent[ReturnEvent]
 
 Triggers when first data is received from server, your can handle this event to display self-defined welcome info or introduce some extra authentication.
 
-#### Handler syntax
+### Handler syntax
 
 newWelcome,prepend = handler(context,source,session)
 
-#### Handler input parameters
+### Handler input parameters
 
 - context: execution context that is defined when adding handler to event.
 - source: a SSH2 processor instance.
 - session: context collected by processor.
 
-#### Handler return value
+### Handler return value
 
 newWelcome: new welcome string.
 
 prepend: boolean value indicate whether to prepend new welcome before original welcome, if false original welcome will be substitute.
 
-#### Example
+### Example
 
 This example shows how to change the welcome of linux to an ascii image:
 
@@ -1529,18 +1584,29 @@ result will be like this:
 
 tnsProcessor support following ParserEvents, refer tns.lua, tnsPackets.lua, tns\parser.lua for more information. more detail will be given in coming document
 C2PParser.events.ConnectEvent:setHandler
+
 C2PParser.events.AuthRequestEvent
+
 C2PParser.events.SessionRequestEvent
+
 C2PParser.events.SetProtocolEvent
+
 C2PParser.events.SQLRequestEvent
+
 C2PParser.events.Piggyback1169
+
 C2PParser.events.Piggyback116b
+
 C2PParser.events.MarkerEvent
 
 S2PParser.events.SessionResponseEvent
+
 S2PParser.events.VersionResponseEvent
+
 S2PParser.events.SetProtocolEvent
+
 S2PParser.events.AcceptEvent
+
 S2PParser.events.AuthErrorEvent:setHandler
 
 # TDSProcessor
@@ -1919,11 +1985,15 @@ testA	5	0	0	0	Chinese_PRC_CI_AS
 
 tdsProcessor support following ParserEvents, refer tds.lua, tdsPackets.lua, tds\parser.lua for more information. more detail will be given in coming document
 C2PParser.events.SQLBatch
+
 C2PParser.events.Prelogin
+
 C2PParser.events.Login7
 
 S2PParser.events.LoginResponse
+
 S2PParser.events.SSLLoginResponse
+
 S2PParser.events.SQLResponse
 
 # LDAPProcessor
@@ -2288,10 +2358,15 @@ result will be like this:
 ## Parser Events
 
 ldapProcessor support following ParserEvents, refer ldap.lua, ldapPackets.lua, ldap\parser.lua for more information. more detail will be given in coming document
+
 C2PParser.events.SearchRequest
+
 C2PParser.events.BindRequest
+
 C2PParser.events.UnbindRequest
 
 S2PParser.events.BindResponse
+
 S2PParser.events.SearchResultEntry
+
 S2PParser.events.SearchResultDone

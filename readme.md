@@ -4,6 +4,9 @@
 
 - [Introduction](#introduction)
 - [Installation](#installation)
+  * [Download and Copy](#Download-and-Copy)
+  * [LuaRock](#LuaRocks)
+  * [Run Test](#Run-Test)
 - [Synopsis](#synopsis)
   * [Processor Creation](#processor-creation)
   * [Channel Creation](#channel-creation)
@@ -130,6 +133,8 @@ SuProxy can collect and maintain session context in memory or redis , below are 
 
 # Installation
 
+## Download and Copy
+
 Copy to Openresty‘s lualib directory. 
 
 dependencies
@@ -138,7 +143,9 @@ lua-resty-openssl > 0.6
 
 lua-resty-redis-socket  (just for examples)
 
-LuaRocks is coming in near future
+## LuaRocks
+
+luarocks install suproxy
 
 ## Run Test
 

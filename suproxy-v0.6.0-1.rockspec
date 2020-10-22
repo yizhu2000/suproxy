@@ -1,0 +1,63 @@
+package = "suproxy"
+version = "v0.6.0-1"
+source = {
+   url = "git+https://github.com/yizhu2000/suproxy.git",
+   tag = "v0.6.0"
+}
+description = {
+   detailed = "Lua SSH2,LDAP,TNS,TDS proxy and mim library for OpenResty",
+   homepage = "https://github.com/yizhu2000/suproxy",
+   license = "BSD"
+}
+dependencies = {
+   "lua >= 5.1",
+   "lua-resty-openssl >= 0.6",
+   "lua-resty-logger-socket >= v0.1"
+}
+build = {
+   type = "builtin",
+   modules = {
+		["suproxy.channel"]="channel.lua",
+		["suproxy.ldap"]="ldap.lua",
+		["suproxy.parser"]="parser.lua",
+		["suproxy.ssh2"]="ssh2.lua",
+		["suproxy.tds"]="tds.lua",
+		["suproxy.test"]="test.lua",
+		["suproxy.tns"]="tns.lua",
+		["suproxy.balancer.balancer"]="balancer/balancer.lua",
+		["suproxy.example.gateway"]="example/gateway.lua",
+		["suproxy.example.session"]="example/session.lua",
+		["suproxy.http.handlers"]="http/handlers.lua",
+		["suproxy.http.initParam"]="http/initParam.lua",
+		["suproxy.http.mockauth"]="http/mockauth.lua",
+		["suproxy.http.ssoProcessors"]="http/ssoProcessors.lua",
+		["suproxy.ldap.ldapPackets"]="ldap/ldapPackets.lua",
+		["suproxy.ldap.parser"]="ldap/parser.lua",
+		["suproxy.session.session"]="session/session.lua",
+		["suproxy.session.sessionManager"]="session/sessionManager.lua",
+		["suproxy.ssh2.commandCollector"]="ssh2/commandCollector.lua",
+		["suproxy.ssh2.parser"]="ssh2/parser.lua",
+		["suproxy.ssh2.shellCommand"]="ssh2/shellCommand.lua",
+		["suproxy.ssh2.ssh2CipherConf"]="ssh2/ssh2CipherConf.lua",
+		["suproxy.ssh2.ssh2Packets"]="ssh2/ssh2Packets.lua",
+		["suproxy.tds.datetime"]="tds/datetime.lua",
+		["suproxy.tds.parser"]="tds/parser.lua",
+		["suproxy.tds.tdsPackets"]="tds/tdsPackets.lua",
+		["suproxy.tds.token"]="tds/token.lua",
+		["suproxy.tds.version"]="tds/version.lua",
+		["suproxy.tns.crypt"]="tns/crypt.lua",
+		["suproxy.tns.parser"]="tns/parser.lua",
+		["suproxy.tns.tnsPackets"]="tns/tnsPackets.lua",
+		["suproxy.utils.asn1"]="utils/asn1.lua",
+		["suproxy.utils.compatibleLog"]="utils/compatibleLog.lua",
+		["suproxy.utils.datetime"]="utils/datetime.lua",
+		["suproxy.utils.event"]="utils/event.lua",
+		["suproxy.utils.ffi-zlib"]="utils/ffi-zlib.lua",
+		["suproxy.utils.json"]="utils/json.lua",
+		["suproxy.utils.pureluapack"]="utils/pureluapack.lua",
+		["suproxy.utils.stringUtils"]="utils/stringUtils.lua",
+		["suproxy.utils.tableUtils"]="utils/tableUtils.lua",
+		["suproxy.utils.unicode"]="utils/unicode.lua",
+		["suproxy.utils.utils"]="utils/utils.lua"
+   }
+}

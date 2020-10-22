@@ -133,13 +133,15 @@ SuProxy can collect and maintain session context in memory or redis , below are 
 
 # Installation
 
-## Download binary(with openresty included)
+Copy to Openresty‘s lualib directory. 
 
-Windows 64
+dependencies
 
-Ubuntu x
+lua-resty-openssl > 0.6
 
-## LuaRock
+lua-resty-redis-socket  (just for examples)
+
+LuaRocks is coming in near future
 
 ## Run Test
 

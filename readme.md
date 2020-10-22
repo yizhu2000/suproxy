@@ -4,9 +4,6 @@
 
 - [Introduction](#introduction)
 - [Installation](#installation)
-  * [Download binary(with openresty included)](#download-binary-with-openresty-included-)
-  * [LuaRock](#luarock)
-  * [Run Test](#run-test)
 - [Synopsis](#synopsis)
   * [Processor Creation](#processor-creation)
   * [Channel Creation](#channel-creation)

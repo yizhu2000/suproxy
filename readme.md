@@ -141,7 +141,7 @@ dependencies
 
 lua-resty-openssl > 0.6
 
-lua-resty-redis-socket  (just for examples)
+lua-resty-logger-socket  (just for examples)
 
 ## LuaRocks
 

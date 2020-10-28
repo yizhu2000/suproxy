@@ -1,5 +1,5 @@
 # SuProxy
-
+maillist:suproxy@googlegroups.com
 # Table of Content
 
 - [Introduction](#introduction)

@@ -55,16 +55,25 @@ SuProxy is a event-driven Lua proxy libraries for analyzing, intercepting, load 
 - Protocol parser: Parse and encode protocol packets.
 - Load Balance: Multi-upstream balancing with fault tolerance.
 
-Here are some screenshort for：
-Filter SQL for Oracle
+Here are some screenshorts for：
+**Filter SQL for Oracle**
+
 ![](https://dev-to-uploads.s3.amazonaws.com/i/g6auhmjdz1zt31gq1436.png)
-Filter Command for linux/Unix
+
+**Filter Command for linux/Unix**
+
 ![](https://dev-to-uploads.s3.amazonaws.com/i/rit3udhr5n819lijimfz.png)
-Log operation for SSH2
+
+**Log operation for SSH2**
+
 ![Alt Text](https://dev-to-uploads.s3.amazonaws.com/i/zcattp29jq8k22i8rnf4.png)
-Log operation for SQL
+
+**Log operation for SQL**
+
 ![Alt Text](https://dev-to-uploads.s3.amazonaws.com/i/p7me92y0kxfv4vq64000.png)
-Change welcome info for linux/Unix 
+
+**Change welcome info for linux/Unix**
+
 ![Alt Text](https://dev-to-uploads.s3.amazonaws.com/i/11bkfpim22yftrevsoux.png)
 
 Currently, supported protocols include SSH2, ORACLE TNS, SQLSERVER TDS, LDAP.
@@ -669,7 +678,6 @@ To test this demo, modify nginx config, add following section to your config fil
 
 ```nginx
 stream {
-	init_by_lua_file lualib/suproxy/init.lua;
     lua_code_cache off;
     #mock logserver if you do not have one
     server {

@@ -5,7 +5,6 @@ config file. Config server credential in getCredential method, then
 use test/test as username/password to login.
 make sure the commands.log file path is valid.
 stream {
-	init_by_lua_file lualib/suproxy/init.lua;
     lua_code_cache off;
     #mock logserver if you do not have one
     server {
